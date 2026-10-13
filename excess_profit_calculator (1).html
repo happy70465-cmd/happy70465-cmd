@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재건축 초과이익환수제 계산기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <header class="bg-indigo-600 text-white py-6 shadow-md">
+        <div class="max-w-4xl mx-auto px-4">
+            <h1 class="text-2xl font-bold tracking-tight">재건축 초과이익 산정 계산기</h1>
+            <p class="text-indigo-200 text-sm mt-1">1인당 초과이익 = (종료시점가액 - 개시시점가액 - 정상집값상승분 - 개발비용) ÷ 조합원 수 (단위: 만원)</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-grow grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Input Form Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div class="space-y-4">
+                <h2 class="text-lg font-semibold text-slate-900 border-b pb-2">산정 변수 입력 (단위: 만원)</h2>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">종료시점가액</label>
+                    <div class="relative">
+                        <input type="number" id="vEnd" value="5000000" class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span class="absolute right-3 top-2.5 text-sm text-slate-500 font-medium">만원</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">예: 준공 시점의 총 주택 가액 (5,000,000만원 = 500억원)</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">개시시점가액</label>
+                    <div class="relative">
+                        <input type="number" id="vStart" value="2000000" class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span class="absolute right-3 top-2.5 text-sm text-slate-500 font-medium">만원</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">예: 추진위원회 승인 시점의 총 가액 (2,000,000만원 = 200억원)</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">정상주택가격상승분</label>
+                    <div class="relative">
+                        <input type="number" id="sNormal" value="500000" class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span class="absolute right-3 top-2.5 text-sm text-slate-500 font-medium">만원</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">예: 정기예금금리 또는 지자체 평균 집값 상승분 (500,000만원 = 50억원)</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">개발비용</label>
+                    <div class="relative">
+                        <input type="number" id="cDev" value="1000000" class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span class="absolute right-3 top-2.5 text-sm text-slate-500 font-medium">만원</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">예: 공사비, 설계비, 부대비용 등 (1,000,000만원 = 100억원)</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">조합원 수</label>
+                    <div class="relative">
+                        <input type="number" id="nMember" value="100" class="w-full pl-3 pr-12 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span class="absolute right-3 top-2.5 text-sm text-slate-500 font-medium">명</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">예: 총 조합원 세대수</p>
+                </div>
+            </div>
+
+            <button onclick="calculateProfit()" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition duration-200 shadow-sm">
+                초과이익 계산하기
+            </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div class="space-y-6">
+                <h2 class="text-lg font-semibold text-slate-900 border-b pb-2">산정 결과 분석</h2>
+                
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                    <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">1인당 예상 초과이익</span>
+                    <div id="resultPerMember" class="text-3xl font-bold text-indigo-900 mt-1">0 원</div>
+                    <div id="resultPerMemberSub" class="text-xs text-indigo-700 mt-1">0 만원</div>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between py-2 border-b border-slate-100">
+                        <span class="text-slate-600">총 개발이익 (분자 값)</span>
+                        <span id="totalProfit" class="font-semibold text-slate-900">0 만원</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-100">
+                        <span class="text-slate-600">종료 - 개시 가액 차액</span>
+                        <span id="diffValue" class="font-semibold text-slate-900">0 만원</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-100">
+                        <span class="text-slate-600">차감 항목 합계 (상승분 + 개발비용)</span>
+                        <span id="totalDeduction" class="font-semibold text-slate-900">0 만원</span>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                    <h3 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">참고 안내</h3>
+                    <p class="text-xs text-amber-700 leading-relaxed">
+                        모든 입력값은 <strong>만원</strong> 단위입니다. 1인당 초과이익 산정 후 보기 편하도록 원 단위 및 억/만 원 환산 표기를 함께 제공합니다.
+                    </p>
+                </div>
+            </div>
+
+            <button onclick="resetForm()" class="mt-6 w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-2.5 rounded-lg transition duration-200 text-sm">
+                초기화
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        <p>재건축 초과이익환수제 시뮬레이션 웹 어플리케이션</p>
+    </footer>
+
+    <script>
+        function formatReadableWon(amountInManWon) {
+            // amountInManWon is in 만원 (10,000 KRW)
+            const totalWon = Math.round(amountInManWon * 10000);
+            
+            // Format to standard Korean currency text (e.g., 3억 5,000만원)
+            const eok = Math.floor(totalWon / 100000000);
+            const man = Math.floor((totalWon % 100000000) / 10000);
+            
+            let parts = [];
+            if (eok > 0) {
+                parts.push(eok.toLocaleString('ko-KR') + '억');
+            }
+            if (man > 0 || parts.length === 0) {
+                parts.push(man.toLocaleString('ko-KR') + '만원');
+            }
+            
+            return {
+                exact: totalWon.toLocaleString('ko-KR') + ' 원',
+                readable: parts.join(' ')
+            };
+        }
+
+        function calculateProfit() {
+            // Inputs are in 만원
+            const vEnd = parseFloat(document.getElementById('vEnd').value) || 0;
+            const vStart = parseFloat(document.getElementById('vStart').value) || 0;
+            const sNormal = parseFloat(document.getElementById('sNormal').value) || 0;
+            const cDev = parseFloat(document.getElementById('cDev').value) || 0;
+            const nMember = parseFloat(document.getElementById('nMember').value) || 1;
+
+            const diff = vEnd - vStart;
+            const totalDeduction = sNormal + cDev;
+            const totalProfit = diff - totalDeduction;
+            const perMember = nMember > 0 ? totalProfit / nMember : 0;
+
+            const formattedPerMember = formatReadableWon(perMember);
+            document.getElementById('resultPerMember').innerText = formattedPerMember.readable;
+            document.getElementById('resultPerMemberSub').innerText = '(' + formattedPerMember.exact + ')';
+
+            document.getElementById('totalProfit').innerText = formatReadableWon(totalProfit).readable + ' (' + Math.round(totalProfit).toLocaleString('ko-KR') + '만원)';
+            document.getElementById('diffValue').innerText = formatReadableWon(diff).readable + ' (' + Math.round(diff).toLocaleString('ko-KR') + '만원)';
+            document.getElementById('totalDeduction').innerText = formatReadableWon(totalDeduction).readable + ' (' + Math.round(totalDeduction).toLocaleString('ko-KR') + '만원)';
+        }
+
+        function resetForm() {
+            document.getElementById('vEnd').value = '';
+            document.getElementById('vStart').value = '';
+            document.getElementById('sNormal').value = '';
+            document.getElementById('cDev').value = '';
+            document.getElementById('nMember').value = '';
+            
+            document.getElementById('resultPerMember').innerText = '0 원';
+            document.getElementById('resultPerMemberSub').innerText = '(0 원)';
+            document.getElementById('totalProfit').innerText = '0 만원';
+            document.getElementById('diffValue').innerText = '0 만원';
+            document.getElementById('totalDeduction').innerText = '0 만원';
+        }
+
+        // Run calculation on load with initial default values
+        window.onload = function() {
+            calculateProfit();
+        };
+    </script>
+</body>
+</html>
